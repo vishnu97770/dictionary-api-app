@@ -1,2 +1,37 @@
-# dictionary-api-app
-A modern full-stack dictionary app built with React, FastAPI and PostgreSQL that allows users to search words and view meanings, pronunciations, synonyms, and usage examples through external APIs.
+# LexiSearch Dictionary API
+
+A dictionary backend built with FastAPI and PostgreSQL.
+
+## Features
+
+- User Authentication (Register/Login)
+- JWT Token Security
+- Word Search API
+- External Dictionary API Integration
+- AI Example Sentence Generator
+- Database Caching
+- Swagger API Documentation
+
+## Tech Stack
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy (Async)
+- HTTPX
+- JWT Authentication
+
+## API Endpoints
+
+### Authentication
+POST /auth/register  
+POST /auth/login  
+
+### Dictionary
+GET /words/search/{word}
+
+### AI
+GET /ai/example/{word}
+
+## Run Locally
+
+Install dependencies
