@@ -1,42 +1,42 @@
 import { useState } from "react";
 import axios from "axios";
 
-// ─── Language list ───────────────────────────────────────────────────────────
+// ─── Language list (BCP-47 codes for Web Speech API) ────────────────────────
 const LANGUAGES = [
   // Indian languages
-  { code: "hi", name: "Hindi",      flag: "🇮🇳" },
-  { code: "bn", name: "Bengali",    flag: "🇧🇩" },
-  { code: "te", name: "Telugu",     flag: "🇮🇳" },
-  { code: "mr", name: "Marathi",    flag: "🇮🇳" },
-  { code: "ta", name: "Tamil",      flag: "🇮🇳" },
-  { code: "gu", name: "Gujarati",   flag: "🇮🇳" },
-  { code: "kn", name: "Kannada",    flag: "🇮🇳" },
-  { code: "ml", name: "Malayalam",  flag: "🇮🇳" },
-  { code: "pa", name: "Punjabi",    flag: "🇮🇳" },
-  { code: "or", name: "Odia",       flag: "🇮🇳" },
-  { code: "ur", name: "Urdu",       flag: "🇵🇰" },
+  { code: "hi-IN", name: "Hindi",      flag: "🇮🇳" },
+  { code: "bn-IN", name: "Bengali",    flag: "🇧🇩" },
+  { code: "te-IN", name: "Telugu",     flag: "🇮🇳" },
+  { code: "mr-IN", name: "Marathi",    flag: "🇮🇳" },
+  { code: "ta-IN", name: "Tamil",      flag: "🇮🇳" },
+  { code: "gu-IN", name: "Gujarati",   flag: "🇮🇳" },
+  { code: "kn-IN", name: "Kannada",    flag: "🇮🇳" },
+  { code: "ml-IN", name: "Malayalam",  flag: "🇮🇳" },
+  { code: "pa-IN", name: "Punjabi",    flag: "🇮🇳" },
+  { code: "or-IN", name: "Odia",       flag: "🇮🇳" },
+  { code: "ur-PK", name: "Urdu",       flag: "🇵🇰" },
   // Asian languages
-  { code: "zh", name: "Chinese",    flag: "🇨🇳" },
-  { code: "ja", name: "Japanese",   flag: "🇯🇵" },
-  { code: "ko", name: "Korean",     flag: "🇰🇷" },
-  { code: "id", name: "Indonesian", flag: "🇮🇩" },
-  { code: "vi", name: "Vietnamese", flag: "🇻🇳" },
-  { code: "th", name: "Thai",       flag: "🇹🇭" },
+  { code: "zh-CN", name: "Chinese",    flag: "🇨🇳" },
+  { code: "ja-JP", name: "Japanese",   flag: "🇯🇵" },
+  { code: "ko-KR", name: "Korean",     flag: "🇰🇷" },
+  { code: "id-ID", name: "Indonesian", flag: "🇮🇩" },
+  { code: "vi-VN", name: "Vietnamese", flag: "🇻🇳" },
+  { code: "th-TH", name: "Thai",       flag: "🇹🇭" },
   // European languages
-  { code: "es", name: "Spanish",    flag: "🇪🇸" },
-  { code: "fr", name: "French",     flag: "🇫🇷" },
-  { code: "de", name: "German",     flag: "🇩🇪" },
-  { code: "it", name: "Italian",    flag: "🇮🇹" },
-  { code: "pt", name: "Portuguese", flag: "🇵🇹" },
-  { code: "ru", name: "Russian",    flag: "🇷🇺" },
-  { code: "pl", name: "Polish",     flag: "🇵🇱" },
-  { code: "nl", name: "Dutch",      flag: "🇳🇱" },
-  { code: "tr", name: "Turkish",    flag: "🇹🇷" },
-  { code: "uk", name: "Ukrainian",  flag: "🇺🇦" },
+  { code: "es-ES", name: "Spanish",    flag: "🇪🇸" },
+  { code: "fr-FR", name: "French",     flag: "🇫🇷" },
+  { code: "de-DE", name: "German",     flag: "🇩🇪" },
+  { code: "it-IT", name: "Italian",    flag: "🇮🇹" },
+  { code: "pt-BR", name: "Portuguese", flag: "🇵🇹" },
+  { code: "ru-RU", name: "Russian",    flag: "🇷🇺" },
+  { code: "pl-PL", name: "Polish",     flag: "🇵🇱" },
+  { code: "nl-NL", name: "Dutch",      flag: "🇳🇱" },
+  { code: "tr-TR", name: "Turkish",    flag: "🇹🇷" },
+  { code: "uk-UA", name: "Ukrainian",  flag: "🇺🇦" },
   // Middle East & Africa
-  { code: "ar", name: "Arabic",     flag: "🇸🇦" },
-  { code: "fa", name: "Persian",    flag: "🇮🇷" },
-  { code: "sw", name: "Swahili",    flag: "🇰🇪" },
+  { code: "ar-SA", name: "Arabic",     flag: "🇸🇦" },
+  { code: "fa-IR", name: "Persian",    flag: "🇮🇷" },
+  { code: "sw-KE", name: "Swahili",    flag: "🇰🇪" },
 ];
 
 function App() {
@@ -55,6 +55,7 @@ function App() {
   const [translatedMeaning, setTranslatedMeaning] = useState("");
   const [loadingTranslation, setLoadingTranslation] = useState(false);
   const [isSpeaking, setIsSpeaking]         = useState(false);
+  const [noVoiceWarning, setNoVoiceWarning] = useState("");
 
   const copyToClipboard = (text, index) => {
     navigator.clipboard.writeText(text);
@@ -187,24 +188,59 @@ function App() {
   // ─── Speak translated meaning ────────────────────────────────────────────────
   const speakTranslation = () => {
     if (!translatedMeaning || !selectedLang) return;
+    setNoVoiceWarning("");
 
-    // Stop any ongoing speech first
+    // Stop if already speaking
     if (isSpeaking) {
       speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(translatedMeaning);
-    utterance.lang = selectedLang.code;   // BCP-47 code e.g. "hi", "fr", "ar"
-    utterance.rate = 0.9;                 // slightly slower = clearer
-    utterance.pitch = 1;
+    // Wait for voices to load (async on some browsers)
+    const trySpeak = () => {
+      const voices = speechSynthesis.getVoices();
+      const langCode = selectedLang.code;           // e.g. "hi-IN"
+      const langPrefix = langCode.split("-")[0];    // e.g. "hi"
 
-    utterance.onstart  = () => setIsSpeaking(true);
-    utterance.onend    = () => setIsSpeaking(false);
-    utterance.onerror  = () => setIsSpeaking(false);
+      // 1️⃣ Exact match (e.g. "hi-IN")
+      let voice = voices.find((v) => v.lang === langCode);
 
-    speechSynthesis.speak(utterance);
+      // 2️⃣ Prefix match (e.g. any voice starting with "hi")
+      if (!voice) voice = voices.find((v) => v.lang.startsWith(langPrefix));
+
+      // 3️⃣ No match → show friendly install message
+      if (!voice && voices.length > 0) {
+        setNoVoiceWarning(
+          `No ${selectedLang.name} voice found on your device. ` +
+          `To enable it: go to your system Settings → Language / Speech → ` +
+          `add "${selectedLang.name}" text-to-speech voice, then reload this page.`
+        );
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(translatedMeaning);
+      utterance.lang  = langCode;
+      utterance.rate  = 0.88;   // slightly slower = clearer for non-native
+      utterance.pitch = 1;
+      if (voice) utterance.voice = voice;
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend   = () => setIsSpeaking(false);
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setNoVoiceWarning(`Could not play ${selectedLang.name} audio. Your browser may not support this language's voice.`);
+      };
+
+      speechSynthesis.speak(utterance);
+    };
+
+    // Voices may not be loaded yet on first call
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.onvoiceschanged = () => { trySpeak(); speechSynthesis.onvoiceschanged = null; };
+    } else {
+      trySpeak();
+    }
   };
 
   // ─── Suggestions ────────────────────────────────────────────────────────────
@@ -462,6 +498,12 @@ function App() {
                       <p className="text-gray-200 leading-relaxed">
                         {translatedMeaning}
                       </p>
+                      {noVoiceWarning && (
+                        <div className="mt-2 flex items-start gap-2 bg-amber-900/30 border border-amber-500/40 rounded-lg px-3 py-2 text-xs text-amber-300">
+                          <span className="text-base shrink-0">⚠️</span>
+                          <span>{noVoiceWarning}</span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
