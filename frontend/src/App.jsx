@@ -73,6 +73,35 @@ function App() {
     JSON.parse(localStorage.getItem("wordFrequencies")) || {}
   );
 
+  // ─── Remove helpers ────────────────────────────────────────────────────────
+  const removeFromHistory = (item) => {
+    const updated = history.filter((w) => w !== item);
+    setHistory(updated);
+    localStorage.setItem("history", JSON.stringify(updated));
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem("history");
+  };
+
+  const removeFromTrending = (item) => {
+    const updated = { ...wordFrequencies };
+    delete updated[item];
+    setWordFrequencies(updated);
+    localStorage.setItem("wordFrequencies", JSON.stringify(updated));
+  };
+
+  const clearTrending = () => {
+    setWordFrequencies({});
+    localStorage.removeItem("wordFrequencies");
+  };
+
+  const clearFavorites = () => {
+    setFavorites([]);
+    localStorage.removeItem("favorites");
+  };
+
   const trendingWords = Object.entries(wordFrequencies)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
@@ -487,64 +516,115 @@ function App() {
         </div>
       )}
 
-      {/* Recent Searches */}
+      {/* ── Recent Searches ── */}
       {history.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
-          <h3 className="text-lg font-semibold text-blue-300 mb-3">
-            Recent Searches
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-blue-300">Recent Searches</h3>
+            <button
+              onClick={clearHistory}
+              className="text-xs text-gray-500 hover:text-red-400 transition-colors duration-150"
+            >
+              Clear all
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {history.map((item, index) => (
-              <button
+              <span
                 key={index}
-                onClick={() => { setWord(item); searchWord(item); }}
-                className="bg-gray-700 text-white px-3 py-1 rounded-lg hover:bg-gray-600 transition-transform duration-200 hover:scale-105 active:scale-95"
+                className="flex items-center gap-1 bg-gray-700 text-white pl-3 pr-1 py-1 rounded-lg group"
               >
-                {item}
-              </button>
+                <button
+                  onClick={() => { setWord(item); searchWord(item); }}
+                  className="hover:text-blue-300 transition-colors duration-150"
+                >
+                  {item}
+                </button>
+                <button
+                  onClick={() => removeFromHistory(item)}
+                  title="Remove"
+                  className="ml-1 w-5 h-5 rounded-md flex items-center justify-center text-gray-500 hover:bg-red-500/20 hover:text-red-400 transition-all duration-150 text-xs"
+                >
+                  ✕
+                </button>
+              </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Favorite Words */}
+      {/* ── Favorite Words ── */}
       {favorites.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
-          <h3 className="text-lg font-semibold text-yellow-400 mb-3">
-            Favorite Words
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-yellow-400">Favorite Words</h3>
+            <button
+              onClick={clearFavorites}
+              className="text-xs text-gray-500 hover:text-red-400 transition-colors duration-150"
+            >
+              Clear all
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {favorites.map((item, index) => (
-              <button
+              <span
                 key={index}
-                onClick={() => { setWord(item); searchWord(item); }}
-                className="bg-yellow-600 text-white px-3 py-1 rounded-lg hover:bg-yellow-700 transition-transform duration-200 hover:scale-105 active:scale-95"
+                className="flex items-center gap-1 bg-yellow-600/80 text-white pl-3 pr-1 py-1 rounded-lg"
               >
-                ⭐ {item}
-              </button>
+                <button
+                  onClick={() => { setWord(item); searchWord(item); }}
+                  className="hover:text-yellow-200 transition-colors duration-150"
+                >
+                  ⭐ {item}
+                </button>
+                <button
+                  onClick={() => toggleFavorite(item)}
+                  title="Remove from favorites"
+                  className="ml-1 w-5 h-5 rounded-md flex items-center justify-center text-yellow-200/60 hover:bg-red-500/20 hover:text-red-400 transition-all duration-150 text-xs"
+                >
+                  ✕
+                </button>
+              </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Trending Words */}
+      {/* ── Trending Words ── */}
       {trendingWords.length > 0 && (
         <div className="mt-10 w-full max-w-xl">
-          <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
-            <span>📈</span> Trending Words
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-green-400 flex items-center gap-2">
+              <span>📈</span> Trending Words
+            </h3>
+            <button
+              onClick={clearTrending}
+              className="text-xs text-gray-500 hover:text-red-400 transition-colors duration-150"
+            >
+              Clear all
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {trendingWords.map((item, index) => (
-              <button
+              <span
                 key={index}
-                onClick={() => { setWord(item); searchWord(item); }}
-                className="bg-green-600/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-lg hover:bg-green-600/30 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                className="flex items-center gap-1 bg-green-600/20 text-green-400 border border-green-500/30 pl-3 pr-1 py-1 rounded-lg"
               >
-                <span>{item}</span>
-                <span className="text-xs opacity-60">
-                  ({wordFrequencies[item]})
-                </span>
-              </button>
+                <button
+                  onClick={() => { setWord(item); searchWord(item); }}
+                  className="flex items-center gap-1.5 hover:text-green-300 transition-colors duration-150"
+                >
+                  <span>{item}</span>
+                  <span className="text-xs opacity-60">({wordFrequencies[item]})</span>
+                </button>
+                <button
+                  onClick={() => removeFromTrending(item)}
+                  title="Remove from trending"
+                  className="ml-1 w-5 h-5 rounded-md flex items-center justify-center text-green-400/50 hover:bg-red-500/20 hover:text-red-400 transition-all duration-150 text-xs"
+                >
+                  ✕
+                </button>
+              </span>
             ))}
           </div>
         </div>
