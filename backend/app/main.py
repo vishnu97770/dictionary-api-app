@@ -27,12 +27,20 @@ async def create_tables():
 
 # Allow frontend connection
 frontend_url = os.getenv("FRONTEND_URL", "")
+vercel_url = os.getenv("VERCEL_URL", "")
+
 origins = [
-    "http://localhost:5173",  # React frontend
+    "http://localhost:5173",  # React frontend (local dev)
+    "https://*.vercel.app",   # Any Vercel preview deployment
 ]
+
+# Add specific production frontend URLs from env vars
 if frontend_url:
     origins.append(f"https://{frontend_url}")
     origins.append(f"http://{frontend_url}")
+
+if vercel_url:
+    origins.append(f"https://{vercel_url}")
 
 app.add_middleware(
     CORSMiddleware,

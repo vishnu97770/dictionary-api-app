@@ -19,6 +19,8 @@ services:
           name: lexisearch-frontend
           type: web
           property: host
+      - key: VERCEL_URL
+        sync: false
 
   - type: web
     name: lexisearch-frontend
