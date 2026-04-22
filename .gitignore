@@ -15,4 +15,4 @@ Thumbs.db
 *.log
 
 # Python cache
-*.pyd
+*.pydbackend/app/database/dictionary.db
