@@ -23,26 +23,38 @@ if not _raw_url:
         connect_args={"check_same_thread": False},
     )
 else:
-    # ── PostgreSQL for production (Render / Supabase / any cloud PG) ──────────
+    # ── PostgreSQL for production ──────────────────────────────────────────────
     # Strip any ?ssl= query param — asyncpg reads SSL via connect_args only
     DATABASE_URL = _raw_url.split("?")[0]
 
-    # Replace postgres:// with postgresql+asyncpg:// if needed
+    # Normalise URL scheme for asyncpg
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
     elif DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-    # Build SSL context — works with Render, Supabase, Neon, etc.
-    ssl_context = ssl_lib.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl_lib.CERT_NONE
+    # ── Detect Render Internal vs External URL ────────────────────────────────
+    # Internal URL hostname ends with "-a" (e.g. dpg-xxx-a)  → no SSL needed
+    # External URL has a region in the hostname               → SSL required
+    #   e.g. dpg-xxx-a.virginia-postgres.render.com  (external, has region)
+    #        dpg-xxx-a                                (internal, no dots)
+    _hostname = DATABASE_URL.split("@")[-1].split("/")[0].split(":")[0]
+    _is_internal = "." not in _hostname   # internal hostnames have no dots
 
-    engine = create_async_engine(
-        DATABASE_URL,
-        echo=False,
-        connect_args={"ssl": ssl_context},
-    )
+    if _is_internal:
+        # Render internal network — no SSL needed, fastest connection
+        engine = create_async_engine(DATABASE_URL, echo=False)
+    else:
+        # External connection (local dev pointing to Render, or Supabase etc.)
+        ssl_context = ssl_lib.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl_lib.CERT_NONE
+        engine = create_async_engine(
+            DATABASE_URL,
+            echo=False,
+            connect_args={"ssl": ssl_context},
+        )
+
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
