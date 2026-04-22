@@ -10,6 +10,7 @@ from app.api.v1.routers import auth
 from app.api.v1.routers import words 
 
 from app.api.v1.routers import ai
+import os
 
 app = FastAPI(
     title="LexiSearch Dictionary API",
@@ -27,13 +28,14 @@ async def create_tables():
 # Allow frontend connection
 origins = [
     "http://localhost:5173",  # React frontend
+    os.getenv("FRONTEND_URL", ""),
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "PSOT", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
