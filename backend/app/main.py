@@ -26,16 +26,19 @@ async def create_tables():
 
 
 # Allow frontend connection
+frontend_url = os.getenv("FRONTEND_URL", "")
 origins = [
     "http://localhost:5173",  # React frontend
-    os.getenv("FRONTEND_URL", ""),
 ]
+if frontend_url:
+    origins.append(f"https://{frontend_url}")
+    origins.append(f"http://{frontend_url}")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "PSOT", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
