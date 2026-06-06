@@ -31,7 +31,6 @@ vercel_url = os.getenv("VERCEL_URL", "")
 
 origins = [
     "http://localhost:5173",  # React frontend (local dev)
-    "https://*.vercel.app",   # Any Vercel preview deployment
 ]
 
 # Add specific production frontend URLs from env vars
@@ -41,6 +40,9 @@ if frontend_url:
 
 if vercel_url:
     origins.append(f"https://{vercel_url}")
+
+# Always allow the known Vercel deployment
+origins.append("https://dictionary-api-app-lake.vercel.app")
 
 app.add_middleware(
     CORSMiddleware,
